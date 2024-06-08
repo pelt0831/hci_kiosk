@@ -50,7 +50,7 @@ const ItemPage = ({ params }: { params: { storeId: string; categoryId: string; i
       return s;
     });
     updateStores(updatedStores);
-    router.push(`/menu/${storeId}/${categoryId}`);
+    router.push(`/`); // 루트 페이지로 이동
   };
 
   const incrementSingleQuantity = () => setSingleQuantity(prev => prev + 1);
@@ -59,44 +59,40 @@ const ItemPage = ({ params }: { params: { storeId: string; categoryId: string; i
   const decrementSetMenuQuantity = () => setSetMenuQuantity(prev => (prev > 0 ? prev - 1 : 0));
 
   return (
-    <div className="container mx-auto p-4 bg-white min-h-screen flex flex-col justify-between">
-      <div>
-        <div className="flex items-center mb-4">
-          <button onClick={() => router.back()} className="mr-4 text-2xl">
-            ←
-          </button>
-          <h1 className="text-2xl font-semibold text-gray-700 mx-auto">메뉴 정보</h1>
-        </div>
+    <div className="container mx-auto p-4 bg-white">
+      <div className="flex items-center mb-4">
+        <button onClick={() => router.back()} className="mr-4 text-2xl">
+          ←
+        </button>
+        <h1 className="text-2xl font-semibold text-gray-700 mx-auto">메뉴 정보</h1>
+      </div>
+      <hr className="my-4" />
+      <div className="text-center">
+        <Image src={item.imageUrl} alt={item.name} width={300} height={200} className="mx-auto" />
+        <h1 className="text-3xl font-bold my-4">{item.name}</h1>
         <hr className="my-4" />
-        <div className="text-center">
-          <Image src={item.imageUrl} alt={item.name} width={300} height={200} className="mx-auto" />
-          <h1 className="text-3xl font-bold my-4">{item.name}</h1>
-          <hr className="my-4" />
-          <p className="text-lg my-4">{item.description}</p>
-          <div className="my-4">
-            <div className="flex items-center justify-between bg-gray-100 p-4 rounded-lg mb-4">
-              <div className="text-xl">단품 {item.price.toLocaleString()}원</div>
+        <p className="text-lg my-4">{item.description}</p>
+        <div className="my-4">
+          <div className="flex items-center justify-between bg-gray-100 p-4 rounded-lg mb-4">
+            <div className="text-xl">단품 {item.price.toLocaleString()}원</div>
+            <div className="flex items-center">
+              <button onClick={decrementSingleQuantity} className="px-4 py-2 bg-gray-300 rounded-l text-2xl">-</button>
+              <div className="px-4 py-2 border-t border-b text-2xl">{singleQuantity}</div>
+              <button onClick={incrementSingleQuantity} className="px-4 py-2 bg-gray-300 rounded-r text-2xl">+</button>
+            </div>
+          </div>
+          {item.setPrice && (
+            <div className="flex items-center justify-between bg-gray-100 p-4 rounded-lg">
+              <div className="text-xl">세트 {item.setPrice.toLocaleString()}원</div>
               <div className="flex items-center">
-                <button onClick={decrementSingleQuantity} className="px-4 py-2 text-xl bg-gray-300 rounded-l">-</button>
-                <div className="px-8 py-2 border-t border-b text-xl">{singleQuantity}</div>
-                <button onClick={incrementSingleQuantity} className="px-4 py-2 text-xl bg-gray-300 rounded-r">+</button>
+                <button onClick={decrementSetMenuQuantity} className="px-4 py-2 bg-gray-300 rounded-l text-2xl">-</button>
+                <div className="px-4 py-2 border-t border-b text-2xl">{setMenuQuantity}</div>
+                <button onClick={incrementSetMenuQuantity} className="px-4 py-2 bg-gray-300 rounded-r text-2xl">+</button>
               </div>
             </div>
-            {item.setPrice && (
-              <div className="flex items-center justify-between bg-gray-100 p-4 rounded-lg">
-                <div className="text-xl">세트 {item.setPrice.toLocaleString()}원</div>
-                <div className="flex items-center">
-                  <button onClick={decrementSetMenuQuantity} className="px-4 py-2 text-xl bg-gray-300 rounded-l">-</button>
-                  <div className="px-8 py-2 border-t border-b text-xl">{setMenuQuantity}</div>
-                  <button onClick={incrementSetMenuQuantity} className="px-4 py-2 text-xl bg-gray-300 rounded-r">+</button>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
-      </div>
-      <div className="bg-white p-4">
-        <button onClick={handleAddToCart} className="bg-orange-500 text-white px-4 py-2 rounded-lg w-full">
+        <button onClick={handleAddToCart} className="bg-orange-500 text-white px-4 py-2 rounded-lg mt-4 w-full">
           총 {(item.price * singleQuantity + (item.setPrice || 0) * setMenuQuantity).toLocaleString()}원 담기
         </button>
       </div>

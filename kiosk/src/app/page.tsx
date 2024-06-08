@@ -6,14 +6,32 @@ import { useRouter } from 'next/navigation';
 import { useStores } from '../context/StoreContext';
 
 const KioskPage: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<number>(1);
+  const [selectedCategory, setSelectedCategory] = useState<number>(0); // 기본 첫 번째 카테고리로 설정
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [tableNumber, setTableNumber] = useState<string>('');
+  const [recommendedItems, setRecommendedItems] = useState<any[]>([]);
   const router = useRouter();
   const { stores } = useStores();
-  const selectedStoreId = 1;  // Example store ID for 맘스터치 건대로데오점
+  const selectedStoreId = 1; // Example store ID for 맘스터치 건대로데오점
   const store = stores.find(store => store.id === selectedStoreId);
-  const categories = store?.categories || [];
+
+  useEffect(() => {
+    // 여기에 추천 메뉴 3개 넣어주세요
+    // 예를 들어, 추천 메뉴를 DB에서 받아오는 코드:
+    // fetchRecommendedItems().then(items => setRecommendedItems(items));
+
+    if (store && store.categories.length > 0) {
+      const firstCategoryItems = [...store.categories[0].items];
+      const randomItems = [];
+      while (randomItems.length < 3 && firstCategoryItems.length > 0) {
+        const randomIndex = Math.floor(Math.random() * firstCategoryItems.length);
+        randomItems.push(firstCategoryItems.splice(randomIndex, 1)[0]);
+      }
+      setRecommendedItems(randomItems);
+    }
+  }, [store]);
+
+  const categories = store ? [{ id: 0, name: '추천 메뉴', items: recommendedItems }, ...store.categories] : [];
   const selectedItems = categories.find(category => category.id === selectedCategory)?.items || [];
 
   useEffect(() => {
@@ -66,6 +84,15 @@ const KioskPage: React.FC = () => {
     return <div>Store not found</div>;
   }
 
+  const totalOrderPrice = store.categories.reduce((acc, category) => {
+    const categoryTotal = category.items.reduce((categoryAcc, item) => {
+      const itemTotal = item.price * (item.quantity || 0);
+      const setItemTotal = item.setPrice ? item.setPrice * (item.setQuantity || 0) : 0;
+      return categoryAcc + itemTotal + setItemTotal;
+    }, 0);
+    return acc + categoryTotal;
+  }, 0);
+
   return (
     <div className="font-sans text-center bg-white min-h-screen relative">
       {isModalOpen && (
@@ -115,7 +142,7 @@ const KioskPage: React.FC = () => {
       </nav>
       <main className="p-4 bg-white mt-0">
         {selectedItems.map(item => (
-          <div key={item.id} className="flex items-center cursor-pointer border-b py-4" onClick={() => router.push(`/menu/${store.id}/${selectedCategory}/${item.id}`)}>
+          <div key={item.id} className="flex items-center cursor-pointer border-b py-4" onClick={() => router.push(`/menu/${store.id}/${selectedCategory === 0 ? store.categories[0].id : selectedCategory}/${item.id}`)}>
             <div className="flex-shrink-0 mr-4" style={{ width: '210px', height: '150px' }}>
               <Image src={item.imageUrl} alt={item.name} width={210} height={150} className="object-contain w-full h-full" />
             </div>
@@ -128,14 +155,10 @@ const KioskPage: React.FC = () => {
           </div>
         ))}
       </main>
-      {selectedItems.length > 0 && (
+      {totalOrderPrice > 0 && (
         <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4">
           <button className="bg-orange-500 text-white w-full py-2 rounded-lg">
-            총 {selectedItems.reduce((acc, item) => {
-              const itemTotal = item.price * (item.quantity || 0);
-              const setItemTotal = item.setPrice ? item.setPrice * (item.setQuantity || 0) : 0;
-              return acc + itemTotal + setItemTotal;
-            }, 0).toLocaleString()}원 주문하기
+            총 {totalOrderPrice.toLocaleString()}원 주문하기
           </button>
         </div>
       )}
